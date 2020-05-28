@@ -8,6 +8,7 @@ class CheckValue(BaseNode):
     """
     Checks that an actor has the given attribute and it's Truthy.
     """
+
     def __init__(self, attribute_name: AnyStr):
         self.attribute_name = attribute_name
 
@@ -22,6 +23,7 @@ class SetCurrentTime(BaseNode):
     """
     Set the current time at a given attribute name.
     """
+
     def __init__(self, attribute_name, timer: Callable[[], float] = perf_counter):
         self.attribute_name = attribute_name
         self.timer = timer
@@ -35,6 +37,7 @@ class SetValue(BaseNode):
     """
     Set a value to the given attribute_name
     """
+
     def __init__(self, attribute_name, value):
         self.attribute_name = attribute_name
         self.value = value
@@ -50,6 +53,7 @@ class Wait(BaseNode):
 
     Must set the attribute in another action node.
     """
+
     def __init__(self, attribute_name, wait_time, timer=perf_counter):
         self.attribute_name = attribute_name
         self.wait_time = wait_time
@@ -80,6 +84,7 @@ class IncreaseValue(BaseNode):
 
     Attribute must already exist.
     """
+
     def __init__(self, attribute_name, value=1):
         self.attribute_name = attribute_name
         self.value = value

@@ -17,7 +17,7 @@ class Concurrent(BaseSelector):
     Run all behaviors, failing early upon reaching a certain number of failures.
     """
 
-    def __init__(self, *children: BaseNode, num_fail: int=1):
+    def __init__(self, *children: BaseNode, num_fail: int = 1):
         """
         :param children: Behavior nodes.
         :param num_fail: The number of possible failures from children nodes.
@@ -40,6 +40,7 @@ class ContinuableSelector(BaseSelector):
     """
     A node that can resume where it left off.
     """
+
     stop_states: List[State]
     final_state: State
     continue_states: List[State] = [State.RUNNING]
@@ -64,6 +65,7 @@ class Priority(ContinuableSelector):
     """
     Select the first running or successful behavior in order.
     """
+
     stop_states = [State.SUCCESS, State.RUNNING]
     final_state = State.FAILED
 
@@ -72,6 +74,6 @@ class Sequence(ContinuableSelector):
     """
     Run behavior in sequence.
     """
+
     stop_states = [State.FAILED, State.RUNNING]
     final_state = State.SUCCESS
-

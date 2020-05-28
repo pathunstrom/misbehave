@@ -24,6 +24,7 @@ def is_node_function(node: Any):
     if not callable(node):
         return False
     from inspect import signature
+
     sig = signature(node)
     if len(sig.parameters) != 2:
         return False

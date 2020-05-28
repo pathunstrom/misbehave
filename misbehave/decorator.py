@@ -1,4 +1,4 @@
-from time  import perf_counter
+from time import perf_counter
 from typing import Any
 
 from misbehave.common import BaseNode, State
@@ -10,6 +10,7 @@ class Decorator(BaseNode):
 
     Subclass and do work before or after the call.
     """
+
     def __init__(self, child, **_):
         self.child = child
 
@@ -36,6 +37,7 @@ class Debounce(Decorator):
     """
     If child node is successful, only run again after a delay.
     """
+
     def __init__(self, child, *, delay=0.5, timer=perf_counter):
         super().__init__(child)
         self.cool_down = delay
