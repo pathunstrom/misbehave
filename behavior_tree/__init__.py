@@ -1,42 +1,9 @@
-from dataclasses import dataclass
 from enum import Enum, auto
 from time import perf_counter
-from typing import Any, Callable, List
-
-import ppb
+from typing import Any, List
 
 
-@dataclass
-class Context:
-    scene: ppb.BaseScene
-    event: ppb.events.Update  # TODO: Figure out if this is the right type hint
-    signal: Callable[[Any], None]
 
-
-class State(Enum):
-    READY = auto()
-    SUCCESS = auto()
-    RUNNING = auto()
-    FAILED = auto()
-    ERROR = auto()
-
-
-class Node:
-    state: State = State.READY
-
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
-        return State.SUCCESS
-
-    def reset(self):
-        self.state = State.READY
-
-    def __repr__(self):
-        values = []
-        for k, v in vars(self).items():
-            if isinstance(v, Node):
-                v = f"{type(v).__name__}(...)"
-            values.append(f"{k}={v}")
-        return f"{type(self).__name__}({', '.join(values)})"
 
 
 class Selector(Node):
@@ -48,7 +15,7 @@ class Selector(Node):
     def __init__(self, *children: Node, **_):
         self.children = children
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         new_state = self.final_state
         i = 0
         for i, child in enumerate(self.children[self.start:], start=self.start):
@@ -59,13 +26,6 @@ class Selector(Node):
         self.state = new_state
         self.start = i
         return self.state
-
-    def reset(self):
-        for child in self.children:
-            child.reset()
-        if self.state not in self.continue_states:
-            self.start = 0
-        super().reset()
 
 
 class Priority(Selector):
@@ -93,7 +53,7 @@ class Concurrent(Selector):
         super().__init__(*children, **kwargs)
         self.num_fail = num_fail
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         num_failed = 0
         states = []
         for child in self.children:
@@ -114,7 +74,7 @@ class Decorator(Node):
     def __init__(self, child, **_):
         self.child = child
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         return self.child.visit(actor, context)
 
     def reset(self):
@@ -127,7 +87,7 @@ class Inverter(Decorator):
     Changes Success to Failure and vice versa
     """
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         result = super().visit(actor, context)
         if result is State.SUCCESS:
             return State.FAILED
@@ -144,7 +104,7 @@ class ThrowEventOnSuccess(Decorator):
         self.event_type = event_type
         self.get_event_params = get_event_params
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         result = self.child.visit(actor, context)
         if result is State.SUCCESS:
             context.signal(self.event_type(*self.get_event_params(actor)))
@@ -159,7 +119,7 @@ class Debounce(Decorator):
         self.timer = timer
         self.attr = f"debounce_{id(self)}_last"
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         if self.timer() <= getattr(actor, self.attr, -10) + self.cool_down:
             return State.FAILED
         result = self.child.visit(actor, context)
@@ -175,7 +135,7 @@ class CheckValue(Node):
     def __init__(self, attribute_name):
         self.attribute_name = attribute_name
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         val = getattr(actor, self.attribute_name, None)
         if val:
             return State.SUCCESS
@@ -188,7 +148,7 @@ class SetCurrentTime(Node):
         self.attribute_name = attribute_name
         self.timer = timer
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         setattr(actor, self.attribute_name, self.timer())
         return State.SUCCESS
 
@@ -199,7 +159,7 @@ class SetValue(Node):
         self.attribute_name = attribute_name
         self.value = value
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         setattr(actor, self.attribute_name, self.value)
         return State.SUCCESS
 
@@ -213,7 +173,7 @@ class Wait(Node):
         self.wait_time = wait_time
         self.timer = timer
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         start_time = getattr(actor, self.attribute_name)
         now = self.timer()
         if now >= start_time + self.wait_time:
@@ -223,7 +183,7 @@ class Wait(Node):
 
 class Idle(Node):
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         return State.RUNNING
 
 
@@ -233,23 +193,8 @@ class IncreaseValue(Node):
         self.attribute_name = attribute_name
         self.value = value
 
-    def visit(self, actor: 'BehaviorMixin', context: Context) -> State:
+    def visit(self, actor: Any, context: Any) -> State:
         val = getattr(actor, self.attribute_name)
         val += self.value
         setattr(actor, self.attribute_name, val)
         return State.SUCCESS
-
-
-class BlackBoard:
-    pass
-
-
-class BehaviorMixin(ppb.sprites.BaseSprite):
-    behavior_tree: Node
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def on_update(self, event: ppb.events.Update, signal: Callable[[Any], None]):
-        self.behavior_tree.reset()
-        self.behavior_tree.visit(self, Context(event.scene, event, signal))
