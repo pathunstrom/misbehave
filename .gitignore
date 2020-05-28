@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 .pypirc
+
+misbehave/version.py
