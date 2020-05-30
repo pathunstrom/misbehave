@@ -30,7 +30,7 @@ jobs:
         pip install setuptools_scm
         pip install setuptools_scm_git_archive
         python setup.py sdist
-        pip install -e _dist/*[tests]
+        pip install _dist/*[tests]
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
