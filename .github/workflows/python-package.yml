@@ -31,7 +31,7 @@ jobs:
         pip install flake8
         pip install setuptools_scm
         pip install setuptools_scm_git_archive
-        python setup.py sdist
+        python setup.py bdist_wheel
         pip install $(ls dist/*)[tests]
     - name: Lint with flake8
       run: |
