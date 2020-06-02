@@ -50,7 +50,7 @@ class Debounce(Decorator):
     def __call__(self, actor: Any, context: Any) -> State:
         if self.timer() <= getattr(actor, self.attr, -10) + self.cool_down:
             return State.FAILED
-        result = self.child.visit(actor, context)
+        result = self.child(actor, context)
         if result is State.SUCCESS:
             setattr(actor, self.attr, self.timer())
         return result
