@@ -58,3 +58,6 @@ class BaseNode:
                 v = f"{type(v).__name__}(...)"
             values.append(f"{k}={v}")
         return f"{type(self).__name__}({', '.join(values)})"
+
+    def reset(self, actor):
+        pass

@@ -14,6 +14,13 @@ class BaseSelector(BaseNode):
     def __init__(self, *children: BaseNode):
         self.children = children
 
+    def reset(self, actor):
+        for child in self.children:
+            try:
+                child.reset(actor)
+            except AttributeError:
+                pass
+
 
 class Concurrent(BaseSelector):
     """
@@ -48,11 +55,14 @@ class ContinuableSelector(BaseSelector):
     final_state: State
     continue_states: List[State] = [State.RUNNING]
 
+    def __init__(self, *children):
+        super().__init__(*children)
+        self.continue_attr = f"{type(self).__name__}_{id(self)}_start"
+
     def __call__(self, actor: Any, context: Any) -> State:
-        continue_attr = f"{type(self).__name__}_{id(self)}_start"
         new_state = self.final_state
         i = 0
-        start = getattr(actor, continue_attr, 0)
+        start = getattr(actor, self.continue_attr, 0)
         for i, child in enumerate(self.children[start:], start=start):
             result = child(actor, context)
             if result in self.stop_states:
@@ -60,8 +70,19 @@ class ContinuableSelector(BaseSelector):
                 break
         if i == len(self.children) - 1:
             i = 0
-        setattr(actor, continue_attr, i)
+        if new_state in self.continue_states:
+            setattr(actor, self.continue_attr, i)
+        else:
+            setattr(actor, self.continue_attr, 0)
+
+        if new_state is not State.RUNNING:
+            self.reset(actor)
+
         return new_state
+
+    def reset(self, actor):
+        super().reset(actor)
+        setattr(actor, self.continue_attr, 0)
 
 
 class Priority(ContinuableSelector):
