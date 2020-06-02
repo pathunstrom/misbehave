@@ -3,7 +3,7 @@
 Misbehave is a Python behavior tree implementation. A behavior tree is a design
 pattern that breaks complex state-based actions into their component parts to
 improve readability and re-usability for autonomous agents. A good starting
-place to understand them is [here]](https://www.gamasutra.com/blogs/ChrisSimpson/20140717/221339/Behavior_trees_for_AI_How_they_work.php).
+place to understand them is [here](https://www.gamasutra.com/blogs/ChrisSimpson/20140717/221339/Behavior_trees_for_AI_How_they_work.php).
 
 Misbehave focused on python language features not available in other languages,
 so some of the common features of AI design are missing by default. The rest of
