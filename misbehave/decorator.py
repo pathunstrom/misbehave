@@ -18,7 +18,7 @@ class Decorator(BaseNode):
         self.child = child
 
     def __call__(self, actor: Any, context: Any) -> State:
-        return self.child.visit(actor, context)
+        return self.child(actor, context)
 
 
 class Inverter(Decorator):
