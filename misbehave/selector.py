@@ -28,7 +28,7 @@ class Concurrent(BaseSelector):
         super().__init__(*children)
         self.num_fail = num_fail
 
-    def visit(self, actor: Any, context: Any) -> State:
+    def __call__(self, actor: Any, context: Any) -> State:
         states = []
         for child in self.children:
             states.append(child(actor, context))

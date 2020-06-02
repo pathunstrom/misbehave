@@ -1,9 +1,7 @@
 import misbehave.decorator as decorator
 from misbehave.common import State
 
-
-class Actor:
-    pass
+from test_misbehave.utils import Actor
 
 
 def test_base_decorator():
