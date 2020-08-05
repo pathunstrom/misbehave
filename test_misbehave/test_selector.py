@@ -1,9 +1,10 @@
 from unittest import mock
 
 import misbehave.selector as selector
+from misbehave.action import Idle
 from misbehave.common import State
 
-from test_misbehave.utils import Actor
+from test_misbehave.utils import Actor, run_only_once
 
 
 def test_base_selector_instance():
@@ -21,3 +22,21 @@ def test_concurrent_selector_success():
     assert result is State.SUCCESS
     behavior_1.assert_called()
     behavior_2.assert_called()
+
+
+def test_sequence_continuation():
+
+    test_sequence = selector.Sequence(
+        run_only_once(),
+        Idle(),
+    )
+
+    actor = Actor()
+    result = test_sequence(actor, None)
+    assert result == State.RUNNING, "Failed first run."
+
+    result = test_sequence(actor, None)
+    assert result == State.RUNNING, "Failed second run."
+
+    result = test_sequence(actor, None)
+    assert result == State.RUNNING, "Failed third run."

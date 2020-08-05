@@ -20,3 +20,20 @@ class RunThenSucceed(BaseNode):
 
     def reset(self, actor):
         actor.run_once = False
+
+
+def run_only_once(
+        state: State = State.SUCCESS,
+        message: str = "run_only_once called twice."
+):
+    run_once = False
+
+    def function(_, __):
+        nonlocal run_once
+        if run_once:
+            assert False, message
+        run_once = True
+        return state
+
+    function.__name__ = run_only_once.__name__
+    return function

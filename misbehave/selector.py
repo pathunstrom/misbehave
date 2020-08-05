@@ -68,14 +68,10 @@ class ContinuableSelector(BaseSelector):
             if result in self.stop_states:
                 new_state = result
                 break
-        if i == len(self.children) - 1:
-            i = 0
         if new_state in self.continue_states:
             setattr(actor, self.continue_attr, i)
         else:
             setattr(actor, self.continue_attr, 0)
-
-        if new_state is not State.RUNNING:
             self.reset(actor)
 
         return new_state
